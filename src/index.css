@@ -1,0 +1,17 @@
+@import 'tailwindcss';
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: #08070a;
+  overflow: hidden;
+}
+
+/* The canvas owns all pointer gestures -- without this, a swipe on the phone
+   screen also scroll-bounces the page on touch devices. */
+canvas {
+  touch-action: none;
+  display: block;
+}

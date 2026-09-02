@@ -21,7 +21,12 @@ export default function App() {
           far: 100,
         }}
         gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}
-        onCreated={({ camera }) => camera.lookAt(...SHOTS.establishing.target)}
+        onCreated={({ camera, gl }) => {
+          camera.lookAt(...SHOTS.establishing.target);
+          // Required for per-material clippingPlanes; the phone UI clips its
+          // sliding screens to the glass with them.
+          gl.localClippingEnabled = true;
+        }}
       >
         <color attach="background" args={['#08070a']} />
         <Experience />

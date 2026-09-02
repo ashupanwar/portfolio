@@ -9,8 +9,10 @@
  * Lives apart from screens.tsx so app screens can share it without importing
  * from the module that renders them.
  */
-export const FONT = '/fonts/inter-latin-400-normal.woff';
-export const FONT_SEMIBOLD = '/fonts/inter-latin-600-normal.woff';
+import { asset } from '../lib/asset';
+
+export const FONT = asset('/fonts/inter-latin-400-normal.woff');
+export const FONT_SEMIBOLD = asset('/fonts/inter-latin-600-normal.woff');
 
 export const WHITE = '#ffffff';
 /** iOS Notes' yellow, used for its nav accents. */

@@ -3,8 +3,9 @@ import { useGLTF } from '@react-three/drei';
 import { createPortal } from '@react-three/fiber';
 import * as THREE from 'three';
 import { DESK, LAMP, LAMP_TARGET, PHONE, SCREEN } from './layout';
+import { asset } from '../lib/asset';
 
-const DRACO = '/draco/';
+const DRACO = asset('/draco/');
 
 /** Turns on shadows for every mesh in a loaded model. */
 function useShadows(object: THREE.Object3D, cast = true, receive = true) {
@@ -51,7 +52,7 @@ function useReportBounds(object: THREE.Object3D | null, label: string, children 
 }
 
 export function Desk() {
-  const { scene } = useGLTF('/models/desk.glb', DRACO);
+  const { scene } = useGLTF(asset('/models/desk.glb'), DRACO);
   const model = useMemo(() => scene.clone(true), [scene]);
   useShadows(model);
   useReportBounds(model, 'desk');
@@ -60,7 +61,7 @@ export function Desk() {
 }
 
 export function Lamp() {
-  const { scene } = useGLTF('/models/lamp.glb', DRACO);
+  const { scene } = useGLTF(asset('/models/lamp.glb'), DRACO);
   const model = useMemo(() => scene.clone(true), [scene]);
   const spotTarget = useRef<THREE.Object3D>(null);
   useShadows(model);
@@ -146,7 +147,7 @@ function SpotFromAnchor({
 }
 
 export function Phone({ children }: { children?: React.ReactNode }) {
-  const { scene } = useGLTF('/models/iphone.glb', DRACO);
+  const { scene } = useGLTF(asset('/models/iphone.glb'), DRACO);
   const model = useMemo(() => scene.clone(true), [scene]);
   useShadows(model);
   useReportBounds(model, 'iphone');
@@ -166,6 +167,6 @@ export function Phone({ children }: { children?: React.ReactNode }) {
   );
 }
 
-useGLTF.preload('/models/desk.glb', DRACO);
-useGLTF.preload('/models/lamp.glb', DRACO);
-useGLTF.preload('/models/iphone.glb', DRACO);
+useGLTF.preload(asset('/models/desk.glb'), DRACO);
+useGLTF.preload(asset('/models/lamp.glb'), DRACO);
+useGLTF.preload(asset('/models/iphone.glb'), DRACO);

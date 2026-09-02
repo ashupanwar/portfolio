@@ -7,6 +7,7 @@ import { DESIGN, ICON_SIZE, LAYER, phoneValues, usePhone } from './usePhone';
 import { applyScreenMaterial, roundedRectGeometry, screenClipPlanes } from './shapes';
 import { DynamicIsland, HomeScreen, LockScreen, TapHint } from './screens';
 import { NotesApp } from './apps/NotesApp';
+import { PhoneApp } from './apps/PhoneApp';
 
 /** How far up you must drag to unlock, as a fraction of screen height. */
 const SWIPE_DISTANCE = 0.3;
@@ -163,7 +164,10 @@ export function PhoneUI() {
           straight over an open app's background. */}
       {/* Position and scale are driven entirely by paint(), from the origin the
           tapped icon recorded. */}
-      <group ref={appRef}>{app === 'Notes' && <NotesApp />}</group>
+      <group ref={appRef}>
+        {app === 'Notes' && <NotesApp />}
+        {app === 'Phone' && <PhoneApp />}
+      </group>
 
       {/* Above every screen and outside the faded groups: it is part of the
           phone, not part of whatever the phone is showing. */}

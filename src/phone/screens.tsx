@@ -3,6 +3,7 @@ import { Text, useTexture } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { SCREEN } from '../scene/layout';
+import { asset } from '../lib/asset';
 import {
   APPS,
   DESIGN,
@@ -379,7 +380,7 @@ export function LockScreen() {
   const content = useRef<THREE.Group>(null);
   const chrome = useRef<THREE.Group>(null);
 
-  const [wallpaper, subject] = useTexture(['/wallpaper.webp', '/wallpaper-fg.webp']);
+  const [wallpaper, subject] = useTexture([asset('/wallpaper.webp'), asset('/wallpaper-fg.webp')]);
   useMemo(() => {
     subject.colorSpace = THREE.SRGBColorSpace;
     subject.anisotropy = 8;
@@ -630,6 +631,7 @@ function APP_ACTIONS(
 ) {
   if (name === 'Lock') return actions.relock;
   if (name === 'Notes') return () => actions.openApp('Notes', origin);
+  if (name === 'Phone') return () => actions.openApp('Phone', origin);
   return undefined;
 }
 
@@ -649,8 +651,8 @@ export function HomeScreen() {
   );
   const search = useMemo(() => roundedRectGeometry(96, 26, 13), []);
 
-  const blurred = useTexture('/wallpaper-blur.webp');
-  const frostPlate = useTexture('/wallpaper-frost.webp');
+  const blurred = useTexture(asset('/wallpaper-blur.webp'));
+  const frostPlate = useTexture(asset('/wallpaper-frost.webp'));
   const iconTextures = useTexture(ICON_URLS);
   useMemo(() => {
     blurred.colorSpace = THREE.SRGBColorSpace;
@@ -744,6 +746,11 @@ export function HomeScreen() {
             py={0}
             label={false}
             texture={app.icon ? byUrl.get(app.icon) : undefined}
+            onSelect={
+              openedApp
+                ? undefined
+                : APP_ACTIONS(app.name, [HOME.columns[index], HOME.dock.y], { relock, openApp })
+            }
           />
         ))}
       </group>

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { asset } from '../lib/asset';
 
 /**
  * `off`    -- dark screen, tap to wake
@@ -73,22 +74,22 @@ export interface AppIcon {
 }
 
 export const APPS: AppIcon[] = [
-  { name: 'Contacts', color: '#f4f4f7', icon: '/icons/contacts.webp' },
-  { name: 'Projects', color: '#2f6df6', icon: '/icons/projects.webp' },
-  { name: 'Experience', color: '#e8a13a', icon: '/icons/experience.webp' },
-  { name: 'Skills', color: '#34b56a', icon: '/icons/skills.webp' },
-  { name: 'Settings', color: '#8e8e93', icon: '/icons/settings.webp' },
-  { name: 'Lock', color: '#2c2c2e', icon: '/icons/lock.webp' },
-  { name: 'Photos', color: '#fbfbfd', icon: '/icons/photos.webp' },
-  { name: 'Notes', color: '#fcfcfa', icon: '/icons/notes.webp' },
+  { name: 'Contacts', color: '#f4f4f7', icon: asset('/icons/contacts.webp') },
+  { name: 'Projects', color: '#2f6df6', icon: asset('/icons/projects.webp') },
+  { name: 'Experience', color: '#e8a13a', icon: asset('/icons/experience.webp') },
+  { name: 'Skills', color: '#34b56a', icon: asset('/icons/skills.webp') },
+  { name: 'Settings', color: '#8e8e93', icon: asset('/icons/settings.webp') },
+  { name: 'Lock', color: '#2c2c2e', icon: asset('/icons/lock.webp') },
+  { name: 'Photos', color: '#fbfbfd', icon: asset('/icons/photos.webp') },
+  { name: 'Notes', color: '#fcfcfa', icon: asset('/icons/notes.webp') },
 ];
 
 /** The four in the dock, which carry no labels. */
 export const DOCK: AppIcon[] = [
-  { name: 'Phone', color: '#34c759', icon: '/icons/phone.webp' },
-  { name: 'Messages', color: '#3ad35e', icon: '/icons/messages.webp' },
-  { name: 'Music', color: '#fa2d48', icon: '/icons/music.webp' },
-  { name: 'Camera', color: '#8e8e93', icon: '/icons/camera.webp' },
+  { name: 'Phone', color: '#34c759', icon: asset('/icons/phone.webp') },
+  { name: 'Messages', color: '#3ad35e', icon: asset('/icons/messages.webp') },
+  { name: 'Music', color: '#fa2d48', icon: asset('/icons/music.webp') },
+  { name: 'Camera', color: '#8e8e93', icon: asset('/icons/camera.webp') },
 ];
 
 /** Content for the Notes app. */

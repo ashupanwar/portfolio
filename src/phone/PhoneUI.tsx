@@ -8,6 +8,7 @@ import { applyScreenMaterial, roundedRectGeometry, screenClipPlanes } from './sh
 import { DynamicIsland, HomeScreen, LockScreen, TapHint } from './screens';
 import { NotesApp } from './apps/NotesApp';
 import { PhoneApp } from './apps/PhoneApp';
+import { MessagesApp } from './apps/MessagesApp';
 
 /** How far up you must drag to unlock, as a fraction of screen height. */
 const SWIPE_DISTANCE = 0.3;
@@ -167,11 +168,17 @@ export function PhoneUI() {
       <group ref={appRef}>
         {app === 'Notes' && <NotesApp />}
         {app === 'Phone' && <PhoneApp />}
+        {app === 'Messages' && <MessagesApp />}
       </group>
 
       {/* Above every screen and outside the faded groups: it is part of the
-          phone, not part of whatever the phone is showing. */}
-      <group position={[0, 0, LAYER * 10]}>
+          phone, not part of whatever the phone is showing. Status-bar content
+          steers clear of this column on every screen, but an open app's own
+          full-bleed background sits at appRef's base offset (LAYER * 4), so
+          this has to clear that -- LAYER * 10 cleared it by nearly 3mm more
+          than needed, reading as a chip floating above the screen rather than
+          cut into it. */}
+      <group position={[0, 0, LAYER * 6]}>
         <DynamicIsland />
       </group>
 

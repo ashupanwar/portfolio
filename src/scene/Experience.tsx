@@ -1,12 +1,12 @@
 import { Suspense } from 'react';
 import { OrbitControls } from '@react-three/drei';
 import { Bloom, EffectComposer, Noise, Vignette } from '@react-three/postprocessing';
-import { Desk, Lamp, Phone } from './Models';
-import { Room } from './Room';
+import { Lamp, Phone, RoomModel } from './Models';
 import { CeilingLight } from './CeilingLight';
 import { Screen } from './Screen';
-import { Hotspot } from './Hotspot';
+import { PhoneHotspot, TvHotspot } from './Hotspot';
 import { CameraRig } from './CameraRig';
+import { LookAround } from './LookAround';
 import { ROOM, SHOTS } from './layout';
 import { useTierSettings } from '../store/useQuality';
 
@@ -54,21 +54,22 @@ export function Experience() {
       <directionalLight position={[4.4, 2.4, 0.9]} intensity={1.25} color="#93a7c9" />
 
       <Suspense fallback={null}>
-        <Room />
+        <RoomModel />
         {/* Two fixtures rather than one: a single ceiling source leaves the
             far end of the desk falling off into black, and real rooms of this
             size are lit by more than one lamp. */}
         <CeilingLight x={-0.75} z={0.1} intensity={7} />
-        <CeilingLight x={0.95} z={0.25} intensity={6} />
-        <Desk />
+        <CeilingLight x={0.6} z={1.3} intensity={6} />
         <Lamp />
         <Phone>{!NO_SCREEN && <Screen />}</Phone>
-        <Hotspot />
+        <PhoneHotspot />
+        <TvHotspot />
       </Suspense>
 
       {/* Orbit and the rig both write camera.position every frame, so only one
           of them can be live. */}
       <CameraRig enabled={!DEBUG} />
+      {!DEBUG && <LookAround />}
 
       {post && (
         <EffectComposer>

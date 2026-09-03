@@ -28,7 +28,7 @@ const OUT = resolve(root, 'public/models');
 const BUDGETS = {
   iphone: { baseColorTexture: 2048, normalTexture: 2048, default: 1024 },
   lamp: { default: 1024 },
-  desk: { default: 1024 },
+  room: { default: 1024 },
 };
 
 const MODELS = [
@@ -58,11 +58,30 @@ const MODELS = [
     dropNodes: ['Backdrop', 'LightPanels'],
   },
   {
-    key: 'desk',
-    in: 'office_desks_wooden.glb',
-    out: 'desk.glb',
-    // A second lamp we don't want competing with the Tomons.
-    dropNodes: ['Lighting_Table-Lamps_Cute_01'],
+    key: 'room',
+    in: 'room.glb',
+    out: 'room.glb',
+    // 138 textures across ~190 props, almost all 2048px PNG normal/ORM maps --
+    // this is where all 218MB of the source lives. Geometry is a rounding error.
+    //
+    // Lamp1-12 are the room's own built-in desk lamp (base, stem, shade, bulb
+    // -- twelve separate part meshes), sitting right where our own Tomons lamp
+    // model is posed. Lamp13/14 are an unrelated floor-standing fixture and
+    // stay.
+    dropNodes: [
+      'Lamp1_low',
+      'Lamp2_low',
+      'Lamp3_low',
+      'Lamp4_low',
+      'Lamp5_low',
+      'Lamp6_low',
+      'Lamp7_low',
+      'Lamp8_low',
+      'Lamp9_low',
+      'Lamp10_low',
+      'Lamp11_low',
+      'Lamp12_low',
+    ],
   },
 ];
 
@@ -78,8 +97,10 @@ function removeSubtree(document, prefix) {
   if (!nodes.length) return 0;
 
   // Collect before disposing -- mutating during traversal skips siblings.
-  const doomed = [];
-  for (const node of nodes) node.traverse((n) => doomed.push(n));
+  // A Set, because a mesh node's name routinely also starts with its own
+  // parent's matched prefix, which would otherwise queue it for disposal twice.
+  const doomed = new Set();
+  for (const node of nodes) node.traverse((n) => doomed.add(n));
   for (const n of doomed) n.dispose();
   return nodes.length;
 }

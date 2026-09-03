@@ -23,6 +23,10 @@ interface PhoneStore {
   note: number | null;
   openNote: (index: number) => void;
   closeNote: () => void;
+  /** Index into CONVERSATIONS of the thread being read, or null for the list. */
+  thread: number | null;
+  openThread: (index: number) => void;
+  closeThread: () => void;
   wake: () => void;
   unlock: () => void;
   /** Back to the lock screen from the home screen, as the Lock app does. */
@@ -36,10 +40,13 @@ export const usePhone = create<PhoneStore>((set) => ({
   appOrigin: [0, 0],
   openApp: (name, origin) =>
     set((s) => (s.state === 'home' ? { app: name, appOrigin: origin } : s)),
-  closeApp: () => set({ app: null, note: null }),
+  closeApp: () => set({ app: null, note: null, thread: null }),
   note: null,
   openNote: (index) => set({ note: index }),
   closeNote: () => set({ note: null }),
+  thread: null,
+  openThread: (index) => set({ thread: index }),
+  closeThread: () => set({ thread: null }),
   wake: () => set((s) => (s.state === 'off' ? { state: 'locked' } : s)),
   unlock: () => set((s) => (s.state === 'locked' ? { state: 'home' } : s)),
   relock: () => set((s) => (s.state === 'home' ? { state: 'locked', app: null } : s)),
@@ -143,6 +150,16 @@ Spatial interface design: what happens to familiar UI patterns when they stop be
 New Delhi, India
 
 Open to interesting front-end work, particularly anything where the interface itself is the hard part.`,
+  },
+] as const;
+
+/** Content for the Messages app. */
+export const CONVERSATIONS = [
+  {
+    name: 'Elon Musk',
+    initials: 'EM',
+    time: '5:32 PM',
+    messages: ['Hey Ashu.', 'Wanna go out for a drink later?'],
   },
 ] as const;
 

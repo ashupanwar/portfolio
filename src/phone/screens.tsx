@@ -632,6 +632,7 @@ function APP_ACTIONS(
   if (name === 'Lock') return actions.relock;
   if (name === 'Notes') return () => actions.openApp('Notes', origin);
   if (name === 'Phone') return () => actions.openApp('Phone', origin);
+  if (name === 'Messages') return () => actions.openApp('Messages', origin);
   return undefined;
 }
 

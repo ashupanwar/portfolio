@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { createPortal } from '@react-three/fiber';
 import * as THREE from 'three';
-import { DESK, LAMP, LAMP_TARGET, PHONE, SCREEN } from './layout';
+import { LAMP, LAMP_TARGET, PHONE, ROOM_MODEL, SCREEN } from './layout';
 import { asset } from '../lib/asset';
 
 const DRACO = asset('/draco/');
@@ -51,13 +51,20 @@ function useReportBounds(object: THREE.Object3D | null, label: string, children 
   }, [object, label, children]);
 }
 
-export function Desk() {
-  const { scene } = useGLTF(asset('/models/desk.glb'), DRACO);
+export function RoomModel() {
+  const { scene } = useGLTF(asset('/models/room.glb'), DRACO);
   const model = useMemo(() => scene.clone(true), [scene]);
   useShadows(model);
-  useReportBounds(model, 'desk');
+  useReportBounds(model, 'room');
 
-  return <primitive object={model} position={DESK.position} scale={DESK.scale} />;
+  return (
+    <primitive
+      object={model}
+      position={ROOM_MODEL.position}
+      rotation={ROOM_MODEL.rotation}
+      scale={ROOM_MODEL.scale}
+    />
+  );
 }
 
 export function Lamp() {
@@ -167,6 +174,6 @@ export function Phone({ children }: { children?: React.ReactNode }) {
   );
 }
 
-useGLTF.preload(asset('/models/desk.glb'), DRACO);
+useGLTF.preload(asset('/models/room.glb'), DRACO);
 useGLTF.preload(asset('/models/lamp.glb'), DRACO);
 useGLTF.preload(asset('/models/iphone.glb'), DRACO);

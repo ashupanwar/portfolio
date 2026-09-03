@@ -1,17 +1,17 @@
-import { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
-import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
-import { SCREEN } from './layout';
-import { PhoneUI } from '../phone/PhoneUI';
-import { usePhone } from '../phone/usePhone';
+import { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
+import { RectAreaLightUniformsLib } from "three/examples/jsm/lights/RectAreaLightUniformsLib.js";
+import { SCREEN } from "./layout";
+import { PhoneUI } from "../phone/PhoneUI";
+import { usePhone } from "../phone/usePhone";
 
 // One-time global setup; the rect-area light renders black without it.
 RectAreaLightUniformsLib.init();
 
 /** Screen light on the desk: near-dark when asleep, cool and bright when awake. */
 const OFF_INTENSITY = 0.15;
-const ON_INTENSITY = 2.2;
+const ON_INTENSITY = 2.0;
 
 /**
  * The phone's screen: the UI itself plus the light it throws into the room.
@@ -22,7 +22,7 @@ const ON_INTENSITY = 2.2;
 export function Screen() {
   const state = usePhone((s) => s.state);
   const light = useRef<THREE.RectAreaLight>(null);
-  const target = state === 'off' ? OFF_INTENSITY : ON_INTENSITY;
+  const target = state === "off" ? OFF_INTENSITY : ON_INTENSITY;
 
   useFrame(() => {
     if (!light.current) return;

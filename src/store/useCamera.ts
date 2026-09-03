@@ -1,6 +1,7 @@
 import gsap from 'gsap';
 import { create } from 'zustand';
 import { SHOTS, establishingPosition } from '../scene/layout';
+import { foldLookIntoTarget, resetLook } from './useLook';
 
 export type ShotName = keyof typeof SHOTS;
 
@@ -35,7 +36,17 @@ const start = resolveShot(initialShot());
  * start moving and then snap back. Keeping them out of the React tree makes the
  * move immune to that: the component becomes a pure applier of this object.
  */
-export const cameraValues = {
+export const cameraValues: {
+  px: number;
+  py: number;
+  pz: number;
+  tx: number;
+  ty: number;
+  tz: number;
+  ux: number;
+  uy: number;
+  uz: number;
+} = {
   px: start.position[0],
   py: start.position[1],
   pz: start.position[2],
@@ -47,7 +58,7 @@ export const cameraValues = {
   uz: start.up[2],
 };
 
-let tween: gsap.core.Tween | null = null;
+let tween: gsap.core.Tween | gsap.core.Timeline | null = null;
 
 /**
  * Re-solves the establishing framing when the viewport changes shape. Applied
@@ -84,6 +95,18 @@ export const useCamera = create<CameraState>((set, get) => ({
 
     // Interrupting a move is legitimate -- take over from wherever we are.
     tween?.kill();
+
+    // Fold any in-progress look-around drag into the base target before
+    // clearing it, so leaving a dragged view starts the move from wherever
+    // you were actually looking -- not a snap back to the old shot's own
+    // dead-centre framing the instant before the real move begins.
+    [cameraValues.tx, cameraValues.ty, cameraValues.tz] = foldLookIntoTarget(
+      [cameraValues.px, cameraValues.py, cameraValues.pz],
+      [cameraValues.tx, cameraValues.ty, cameraValues.tz],
+      [cameraValues.ux, cameraValues.uy, cameraValues.uz],
+    );
+    resetLook();
+
     set({ shot, moving: true });
 
     tween = gsap.to(cameraValues, {

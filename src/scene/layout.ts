@@ -5,33 +5,38 @@ import * as THREE from "three";
  *
  * The source models disagree about units and orientation, so all the fudge
  * factors live here rather than being scattered through the components:
- *   - desk  : authored in metres, +Y up. Used as-is.
+ *   - room  : a Sketchfab "corner of the room, 90s teenager theme" scene --
+ *             its own desk, chair, walls, floor and clutter. Authored in
+ *             Blender-default centimetres/Z-up, but that correction is baked
+ *             into the file's own root node (see prepare-assets.mjs), so it
+ *             loads already in metres and +Y up. Used as-is, at the origin.
  *   - lamp  : authored in CENTIMETRES (28.8 units tall) -> scale 0.01.
  *   - iphone: authored in metres but ~16% oversized vs a real 14 Pro
  *             (83.6 x 170.9 x 13.1mm vs 71.5 x 147.5 x 7.85mm), and its screen
  *             faces +Z, so it needs -90deg about X to lie face-up on the desk.
  */
 
-export const DESK = {
+export const ROOM_MODEL = {
   position: [0, 0, 0],
   rotation: [0, 0, 0],
   scale: 1,
 } as const;
 
 /**
- * Height of the desk's work surface, measured from the model rather than
- * guessed: mesh `Object_4` tops out here, and the magazine props rest on it.
- * Everything that sits on the desk is positioned off this.
+ * Height of the room model's own desk surface, measured from its `Desk*_low`
+ * meshes rather than guessed. Everything that sits on the desk is positioned
+ * off this.
  */
-export const DESK_SURFACE = 0.759;
+export const DESK_SURFACE = 0.7;
 
 /**
  * The lamp's own root node already converts its centimetre authoring units, so
  * it arrives ~6.5cm tall -- an extra 0.01 on top shrinks it to a thimble.
- * 0.062 brings it to a realistic ~40cm desk lamp.
+ * 0.062 brings it to a realistic ~40cm desk lamp. Sits at the desk's back-left,
+ * clear of the room's own clutter, which is scattered toward the front-right.
  */
 export const LAMP = {
-  position: [-0.4, DESK_SURFACE, -0.14],
+  position: [-0.55, DESK_SURFACE, -0.18],
   rotation: [0, 1.15, 0],
   scale: 0.062,
 } as const;
@@ -40,19 +45,18 @@ export const LAMP = {
 const PHONE_HALF_THICKNESS = 0.0056;
 
 /**
- * Sits just left of the magazine stack, which spans x 0.42..0.72. Rotated 45deg
- * anticlockwise: the z term is the in-plane spin (the -90deg X term is what lays
- * the phone face-up), and the body's rotated footprint reaches ~0.077 either
- * side, so x = 0.32 clears the magazines without touching them.
+ * The desk (x -0.77..0.81, z -0.33..0.33) already carries the room's own
+ * clutter -- a radio to the left, a sketchbook to the right -- so the phone
+ * sits in the clear gap between them, inside the lamp's own light pool.
  */
 export const PHONE = {
-  position: [0.32, DESK_SURFACE + PHONE_HALF_THICKNESS, 0.06],
+  position: [0.15, DESK_SURFACE + PHONE_HALF_THICKNESS, 0.08],
   rotation: [-Math.PI / 2, 0, Math.PI / 4],
   scale: 0.86,
 } as const;
 
 /** Where the lamp's spot is aimed -- world space, on the desk between lamp and phone. */
-export const LAMP_TARGET = [-0.06, DESK_SURFACE, 0.02] as const;
+export const LAMP_TARGET = [0.05, DESK_SURFACE, 0] as const;
 
 /**
  * The phone's screen is baked into its baseColor texture -- there is no separate
@@ -80,19 +84,16 @@ export const SCREEN = {
   radius: 0.17,
 } as const;
 
-export const ROOM = {
-  width: 6,
-  depth: 5,
-  height: 2.8,
-} as const;
-
 /**
- * Where the two walls meet, in world space. The desk spans x -0.72..0.73 and
- * z -0.29..0.47, so this leaves a small realistic gap behind and beside it
- * rather than clipping the furniture into the plaster. The room extends away
- * from here in +x and +z, so the corner sits behind the desk's left shoulder.
+ * The room model's own footprint (its `floor`/`Wall001`/`Wall002` meshes),
+ * measured rather than guessed. Still used for the ceiling fixtures and the
+ * wall-wash light, even though the walls themselves are now part of the model.
  */
-export const CORNER = { x: -0.86, z: -0.4 } as const;
+export const ROOM = {
+  width: 2.67,
+  depth: 2.67,
+  height: 2.71,
+} as const;
 
 /**
  * The phone's own "screen up" direction in world space: its local +Y pushed
@@ -107,7 +108,7 @@ export const PHONE_UP = new THREE.Vector3(0, 1, 0)
   .toArray();
 
 /** Vertical field of view, in degrees. Must match the <Canvas> camera. */
-export const FOV = 34;
+export const FOV = 46;
 
 /**
  * The establishing shot is defined by an angle and a framing width rather than a
@@ -118,11 +119,11 @@ export const FOV = 34;
  * ultrawide. `establishingPosition` solves for the distance instead.
  */
 export const ESTABLISHING = {
-  target: [-0.05, 0.88, 0.0] as const,
+  target: [0.15, 0.82, 0.0] as const,
   /** Unit vector from the target back toward the camera; sets the angle. */
   direction: [0.6997, 0.278, 0.658] as const,
-  /** World-space width to fit across the frame: the 1.45m desk plus a little air. */
-  frameWidth: 1.62,
+  /** World-space width to fit across the frame: the 1.58m desk plus a little air. */
+  frameWidth: 1.75,
   /** Guard rails, so an extreme viewport cannot put us inside the desk or out in the room. */
   minDistance: 0.95,
   maxDistance: 3.4,
@@ -173,6 +174,20 @@ export const SHOTS = {
     target: [PHONE.position[0], PHONE.position[1], PHONE.position[2]],
     up: PHONE_UP,
   },
+  /**
+   * Squared up to the TV's screen. The room model has no separate screen
+   * mesh to target, so `target` is the TV body's own centre (measured from
+   * its `TV.*_low` meshes) and `position` stands off along its front normal
+   * -- local -Y on the TV's own node, which world-space points toward
+   * (0.708, 0, 0.706): the one candidate of its two horizontal local axes
+   * that actually faces back toward the desk rather than into the corner
+   * behind it.
+   */
+  tv: {
+    position: [-0.15, 0.5, 1.45],
+    target: [-1.25, 0.5, 0.35],
+    up: [0, 1, 0],
+  },
 } as const;
 
 /**
@@ -184,10 +199,22 @@ export const SHOTS = {
  */
 export const HOTSPOT = {
   position: [
-    PHONE.position[0] - 0.1,
-    PHONE.position[1] + 0.075,
+    PHONE.position[0] - 0.02,
+    PHONE.position[1] + 0.065,
     PHONE.position[2] - 0.02,
   ],
-  side: -1,
+  side: 1,
   label: "Ashu's iPhone",
+} as const;
+
+/**
+ * A second, purely decorative label on the room's own CRT TV -- only visible
+ * once the look-around drag brings the TV into frame. Anchored to its
+ * top-front corner (measured from its `TV.*_low` meshes), the same corner
+ * the phone's own hotspot uses.
+ */
+export const TV_HOTSPOT = {
+  position: [-0.85, 0.86, 0.45],
+  side: -1,
+  label: "Television",
 } as const;

@@ -176,16 +176,24 @@ export const SHOTS = {
   },
   /**
    * Squared up to the TV's screen. The room model has no separate screen
-   * mesh to target, so `target` is the TV body's own centre (measured from
-   * its `TV.*_low` meshes) and `position` stands off along its front normal
-   * -- local -Y on the TV's own node, which world-space points toward
-   * (0.708, 0, 0.706): the one candidate of its two horizontal local axes
-   * that actually faces back toward the desk rather than into the corner
-   * behind it.
+   * mesh to target, so `target` starts from the TV body's own centre
+   * (measured from its `TV.*_low` meshes) and `position` stands off along
+   * its front normal -- local -Y on the TV's own node, which world-space
+   * points toward (0.708, 0, 0.706): the one candidate of its two
+   * horizontal local axes that actually faces back toward the desk rather
+   * than into the corner behind it.
+   *
+   * The body's own bounding-box centre isn't quite the screen's visual
+   * centre, though -- the cabinet isn't symmetric around the tube, so
+   * squaring up to the body left the screen reading a touch right of centre
+   * on screen. `target` is nudged along the shot's own right vector (the
+   * body-centre-to-camera direction crossed with up) to correct for that,
+   * by the on-screen offset this produced converted back to a world
+   * distance at the target's own depth.
    */
   tv: {
     position: [-0.15, 0.5, 1.45],
-    target: [-1.25, 0.5, 0.35],
+    target: [-1.16, 0.5, 0.26],
     up: [0, 1, 0],
   },
 } as const;
@@ -218,3 +226,16 @@ export const TV_HOTSPOT = {
   side: -1,
   label: "Television",
 } as const;
+
+/**
+ * The room's two windows (its `Window1`/`Window2` meshes), for hanging a sky
+ * backdrop behind their glass. Each entry is the glass pane's own centre
+ * (measured from its `Glass.00*` mesh) plus the yaw that turns a belt's local
+ * frame -- local -Z "outside", local +X "rightward" as seen looking out --
+ * to match that window's actual facing: Window1 looks out along -Z and needs
+ * no turn, Window2 looks out along -X and needs a quarter turn.
+ */
+export const WINDOWS = [
+  { position: [0, 1.585, -0.456], rotationY: 0 },
+  { position: [-1.594, 1.585, 1.136], rotationY: Math.PI / 2 },
+] as const;

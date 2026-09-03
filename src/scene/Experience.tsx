@@ -7,6 +7,7 @@ import { Screen } from './Screen';
 import { PhoneHotspot, TvHotspot } from './Hotspot';
 import { CameraRig } from './CameraRig';
 import { LookAround } from './LookAround';
+import { SkyWindows } from './Sky';
 import { ROOM, SHOTS } from './layout';
 import { useTierSettings } from '../store/useQuality';
 
@@ -54,6 +55,7 @@ export function Experience() {
       <directionalLight position={[4.4, 2.4, 0.9]} intensity={1.25} color="#93a7c9" />
 
       <Suspense fallback={null}>
+        <SkyWindows />
         <RoomModel />
         {/* Two fixtures rather than one: a single ceiling source leaves the
             far end of the desk falling off into black, and real rooms of this

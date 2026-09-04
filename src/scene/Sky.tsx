@@ -147,7 +147,7 @@ function CloudBelt({ position, rotationY }: { position: readonly [number, number
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
       <mesh position={[0, 0, -18]}>
-        <planeGeometry args={[LOOP_WIDTH * 2.2, 11]} />
+        <planeGeometry args={[LOOP_WIDTH * 4.4, 22]} />
         <meshBasicMaterial color="#7ec8f5" />
       </mesh>
 

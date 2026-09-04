@@ -2,6 +2,7 @@ import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Experience } from './scene/Experience';
 import { BackButton } from './ui/BackButton';
+import { Loader } from './ui/Loader';
 import { FOV, SHOTS } from './scene/layout';
 import { useTierSettings } from './store/useQuality';
 
@@ -33,6 +34,7 @@ export default function App() {
       </Canvas>
 
       <BackButton />
+      <Loader />
     </div>
   );
 }

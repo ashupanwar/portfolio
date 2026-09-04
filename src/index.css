@@ -15,3 +15,28 @@ canvas {
   touch-action: none;
   display: block;
 }
+
+/* Loader wave scroll: "px" here is the enclosing <svg>'s own user-unit space,
+   not real screen pixels, per how CSS transforms resolve on SVG children --
+   so this shifts by exactly one period of each wave path's repeating shape,
+   looping seamlessly. Two speeds/directions read as one wave overtaking the
+   other rather than a single rigid ripple.
+
+   Durations stay under a couple of seconds on purpose: on a quick load the
+   loader itself is only on screen briefly, and a very slow multi-second
+   cycle barely moves in that window -- reading as static rather than
+   flowing. */
+@keyframes loader-wave-scroll-a {
+  from { transform: translateX(0); }
+  to { transform: translateX(-160px); }
+}
+@keyframes loader-wave-scroll-b {
+  from { transform: translateX(0); }
+  to { transform: translateX(160px); }
+}
+.loader-wave-scroll-a {
+  animation: loader-wave-scroll-a 2.6s linear infinite;
+}
+.loader-wave-scroll-b {
+  animation: loader-wave-scroll-b 3.8s linear infinite;
+}

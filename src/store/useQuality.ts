@@ -13,16 +13,23 @@ export const TIER_SETTINGS = {
  * Best-effort guess at what this device can hold 60fps on. Deliberately
  * conservative: self-detection is never right for everyone, which is why the
  * user can always override it.
+ *
+ * Judged purely on capability (memory, cores), not on input type. A phone
+ * and a laptop with the same specs get the same tier -- there used to be a
+ * blanket downgrade to `medium` for any coarse (touch) pointer, on the
+ * assumption that touch means mobile means weaker hardware, but that
+ * conflated "phone" with "underpowered": plenty of phones can hold the same
+ * dpr/shadows/post budget a laptop does, and the flat downgrade capped their
+ * render resolution well below their own screen's real pixel density,
+ * reading as blurry rather than merely conservative.
  */
 function detectTier(): Tier {
   if (typeof navigator === 'undefined') return 'medium';
 
   const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8;
   const cores = navigator.hardwareConcurrency ?? 4;
-  const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
 
   if (memory <= 4 || cores <= 4) return 'low';
-  if (coarse) return 'medium';
   return 'high';
 }
 

@@ -4,6 +4,7 @@ import { Bloom, EffectComposer, Noise, Vignette } from '@react-three/postprocess
 import { Lamp, Phone, RoomModel } from './Models';
 import { CeilingLight } from './CeilingLight';
 import { Screen } from './Screen';
+import { TvScreen } from './TvScreen';
 import { PhoneHotspot, TvHotspot } from './Hotspot';
 import { CameraRig } from './CameraRig';
 import { LookAround } from './LookAround';
@@ -64,6 +65,7 @@ export function Experience() {
         <CeilingLight x={0.6} z={1.3} intensity={6} />
         <Lamp />
         <Phone>{!NO_SCREEN && <Screen />}</Phone>
+        {!NO_SCREEN && <TvScreen />}
         <PhoneHotspot />
         <TvHotspot />
       </Suspense>

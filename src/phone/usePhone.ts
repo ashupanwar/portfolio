@@ -27,6 +27,14 @@ interface PhoneStore {
   thread: number | null;
   openThread: (index: number) => void;
   closeThread: () => void;
+  /** Index into CONTACTS of the card being read, or null for the list. */
+  contact: number | null;
+  openContact: (index: number) => void;
+  closeContact: () => void;
+  /** Index into PHOTOS being previewed full-screen, or null for the grid. */
+  photo: number | null;
+  openPhoto: (index: number) => void;
+  closePhoto: () => void;
   wake: () => void;
   unlock: () => void;
   /** Back to the lock screen from the home screen, as the Lock app does. */
@@ -40,13 +48,19 @@ export const usePhone = create<PhoneStore>((set) => ({
   appOrigin: [0, 0],
   openApp: (name, origin) =>
     set((s) => (s.state === 'home' ? { app: name, appOrigin: origin } : s)),
-  closeApp: () => set({ app: null, note: null, thread: null }),
+  closeApp: () => set({ app: null, note: null, thread: null, contact: null, photo: null }),
   note: null,
   openNote: (index) => set({ note: index }),
   closeNote: () => set({ note: null }),
   thread: null,
   openThread: (index) => set({ thread: index }),
   closeThread: () => set({ thread: null }),
+  contact: null,
+  openContact: (index) => set({ contact: index }),
+  closeContact: () => set({ contact: null }),
+  photo: null,
+  openPhoto: (index) => set({ photo: index }),
+  closePhoto: () => set({ photo: null }),
   wake: () => set((s) => (s.state === 'off' ? { state: 'locked' } : s)),
   unlock: () => set((s) => (s.state === 'locked' ? { state: 'home' } : s)),
   relock: () => set((s) => (s.state === 'home' ? { state: 'locked', app: null } : s)),
@@ -160,6 +174,125 @@ export const CONVERSATIONS = [
     initials: 'EM',
     time: '5:32 PM',
     messages: ['Hey Ashu.', 'Wanna go out for a drink later?'],
+  },
+] as const;
+
+/** Content for the Contacts app -- one card, its own. */
+export const CONTACTS = [
+  {
+    name: 'Ashu Panwar',
+    initials: 'AP',
+    /** Displayed as-is; kept apart from `phone` so the raw digits stay
+     *  available if anything ever needs to dial rather than just show it. */
+    phoneDisplay: '+91 98821 05306',
+    phone: '+919882105306',
+  },
+] as const;
+
+/** Content for the Photos app -- one shot per entry, under public/photos/. */
+export const PHOTOS = [{ src: asset('/photos/bird.webp') }] as const;
+
+/**
+ * Content for the Projects app. `image` is a screenshot under
+ * public/projects/, or null while one hasn't been added yet -- the card
+ * falls back to a plain accent-coloured banner with just the name.
+ * `url` opens in a new tab on tap; null for the two iOS apps, which have no
+ * public web page to send you to.
+ */
+export const PROJECTS = [
+  {
+    name: 'Care.medanta.org',
+    url: 'https://care.medanta.org',
+    image: null as string | null,
+  },
+  {
+    name: 'Max Hospitals',
+    url: 'https://maxhospitals.com',
+    image: null as string | null,
+  },
+  {
+    name: 'EMB.global',
+    url: 'https://emb.global',
+    image: null as string | null,
+  },
+  {
+    name: 'Freta',
+    url: null as string | null,
+    image: asset('/projects/freta.webp') as string | null,
+  },
+  {
+    name: 'PhaseFit',
+    url: null as string | null,
+    image: asset('/projects/phasefit.webp') as string | null,
+  },
+  {
+    name: 'Portfolio Website',
+    url: 'https://ashupanwar.github.io/portfolio/',
+    image: null as string | null,
+  },
+] as const;
+
+/**
+ * Content for the Skills app -- each entry's own SVG (under
+ * public/icons/skills/, fetched from Simple Icons) plus its brand colour.
+ * Marks that are naturally monochrome (Next.js, Three.js) are recoloured
+ * white to read against the app's dark cards, matching how those two brands
+ * display their own logo in dark contexts.
+ */
+export const SKILLS = [
+  { name: 'React', icon: 'react', color: '#61dafb' },
+  { name: 'Next.js', icon: 'next', color: '#ffffff' },
+  { name: 'TypeScript', icon: 'typescript', color: '#3178c6' },
+  { name: 'JavaScript', icon: 'javascript', color: '#f7df1e' },
+  { name: 'Three.js', icon: 'three', color: '#ffffff' },
+  { name: 'Node.js', icon: 'node', color: '#339933' },
+  { name: 'Tailwind CSS', icon: 'tailwind', color: '#38bdf8' },
+  { name: 'HTML5', icon: 'html5', color: '#e34f26' },
+  { name: 'CSS3', icon: 'css3', color: '#1572b6' },
+  { name: 'Git', icon: 'git', color: '#f05032' },
+] as const;
+
+/** Content for the Experience app, in reverse-chronological order. */
+export const EXPERIENCE = [
+  {
+    company: 'THB',
+    position: 'Software Engineer 2 · Front-end',
+    location: 'Remote',
+    startDate: 'Aug 2023',
+    endDate: 'Present',
+    highlights: [
+      'Created a patient-facing web app for Medanta Hospitals.',
+      'Built CRM systems for Medanta, Max and Svass Hospitals.',
+      'Built an outbreak monitoring dashboard for GSK.',
+    ],
+  },
+  {
+    company: 'Expand My Business',
+    position: 'Software Engineer 2 · Front-end',
+    location: 'Gurgaon',
+    startDate: 'Dec 2022',
+    endDate: 'Jun 2023',
+    highlights: [
+      'Developed multiple e-commerce projects.',
+      'Built a template-based website-building web app.',
+      "Built CRM solutions for clients' inventory management.",
+    ],
+  },
+  {
+    company: 'HCL Tech',
+    position: 'Senior Software Engineer',
+    location: 'Remote',
+    startDate: 'Jan 2021',
+    endDate: 'Dec 2022',
+    highlights: ['Worked on MyHCL, the portal serving 200,000+ HCL employees.'],
+  },
+  {
+    company: 'UiPath',
+    position: 'Software Engineer',
+    location: 'Remote',
+    startDate: 'Jun 2019',
+    endDate: 'Jan 2021',
+    highlights: ['Worked with Fortune 500 companies building efficient automation apps.'],
   },
 ] as const;
 

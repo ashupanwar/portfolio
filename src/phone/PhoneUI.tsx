@@ -9,6 +9,14 @@ import { DynamicIsland, HomeScreen, LockScreen, TapHint } from './screens';
 import { NotesApp } from './apps/NotesApp';
 import { PhoneApp } from './apps/PhoneApp';
 import { MessagesApp } from './apps/MessagesApp';
+import { MusicApp } from './apps/MusicApp';
+import { CameraApp } from './apps/CameraApp';
+import { SettingsApp } from './apps/SettingsApp';
+import { ContactsApp } from './apps/ContactsApp';
+import { SkillsApp } from './apps/SkillsApp';
+import { ExperienceApp } from './apps/ExperienceApp';
+import { PhotosApp } from './apps/PhotosApp';
+import { ProjectsApp } from './apps/ProjectsApp';
 
 /** How far up you must drag to unlock, as a fraction of screen height. */
 const SWIPE_DISTANCE = 0.3;
@@ -169,6 +177,14 @@ export function PhoneUI() {
         {app === 'Notes' && <NotesApp />}
         {app === 'Phone' && <PhoneApp />}
         {app === 'Messages' && <MessagesApp />}
+        {app === 'Music' && <MusicApp />}
+        {app === 'Camera' && <CameraApp />}
+        {app === 'Settings' && <SettingsApp />}
+        {app === 'Contacts' && <ContactsApp />}
+        {app === 'Skills' && <SkillsApp />}
+        {app === 'Experience' && <ExperienceApp />}
+        {app === 'Photos' && <PhotosApp />}
+        {app === 'Projects' && <ProjectsApp />}
       </group>
 
       {/* Above every screen and outside the faded groups: it is part of the

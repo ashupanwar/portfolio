@@ -31,6 +31,10 @@ interface PhoneStore {
   contact: number | null;
   openContact: (index: number) => void;
   closeContact: () => void;
+  /** Index into PHOTOS being previewed full-screen, or null for the grid. */
+  photo: number | null;
+  openPhoto: (index: number) => void;
+  closePhoto: () => void;
   wake: () => void;
   unlock: () => void;
   /** Back to the lock screen from the home screen, as the Lock app does. */
@@ -44,7 +48,7 @@ export const usePhone = create<PhoneStore>((set) => ({
   appOrigin: [0, 0],
   openApp: (name, origin) =>
     set((s) => (s.state === 'home' ? { app: name, appOrigin: origin } : s)),
-  closeApp: () => set({ app: null, note: null, thread: null, contact: null }),
+  closeApp: () => set({ app: null, note: null, thread: null, contact: null, photo: null }),
   note: null,
   openNote: (index) => set({ note: index }),
   closeNote: () => set({ note: null }),
@@ -54,6 +58,9 @@ export const usePhone = create<PhoneStore>((set) => ({
   contact: null,
   openContact: (index) => set({ contact: index }),
   closeContact: () => set({ contact: null }),
+  photo: null,
+  openPhoto: (index) => set({ photo: index }),
+  closePhoto: () => set({ photo: null }),
   wake: () => set((s) => (s.state === 'off' ? { state: 'locked' } : s)),
   unlock: () => set((s) => (s.state === 'locked' ? { state: 'home' } : s)),
   relock: () => set((s) => (s.state === 'home' ? { state: 'locked', app: null } : s)),
@@ -179,6 +186,49 @@ export const CONTACTS = [
      *  available if anything ever needs to dial rather than just show it. */
     phoneDisplay: '+91 98821 05306',
     phone: '+919882105306',
+  },
+] as const;
+
+/** Content for the Photos app -- one shot per entry, under public/photos/. */
+export const PHOTOS = [{ src: asset('/photos/bird.webp') }] as const;
+
+/**
+ * Content for the Projects app. `image` is a screenshot under
+ * public/projects/, or null while one hasn't been added yet -- the card
+ * falls back to a plain accent-coloured banner with just the name.
+ * `url` opens in a new tab on tap; null for the two iOS apps, which have no
+ * public web page to send you to.
+ */
+export const PROJECTS = [
+  {
+    name: 'Care.medanta.org',
+    url: 'https://care.medanta.org',
+    image: null as string | null,
+  },
+  {
+    name: 'Max Hospitals',
+    url: 'https://maxhospitals.com',
+    image: null as string | null,
+  },
+  {
+    name: 'EMB.global',
+    url: 'https://emb.global',
+    image: null as string | null,
+  },
+  {
+    name: 'Freta',
+    url: null as string | null,
+    image: asset('/projects/freta.webp') as string | null,
+  },
+  {
+    name: 'PhaseFit',
+    url: null as string | null,
+    image: asset('/projects/phasefit.webp') as string | null,
+  },
+  {
+    name: 'Portfolio Website',
+    url: 'https://ashupanwar.github.io/portfolio/',
+    image: null as string | null,
   },
 ] as const;
 

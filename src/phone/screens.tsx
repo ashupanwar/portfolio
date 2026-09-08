@@ -639,6 +639,8 @@ function APP_ACTIONS(
   if (name === 'Contacts') return () => actions.openApp('Contacts', origin);
   if (name === 'Skills') return () => actions.openApp('Skills', origin);
   if (name === 'Experience') return () => actions.openApp('Experience', origin);
+  if (name === 'Photos') return () => actions.openApp('Photos', origin);
+  if (name === 'Projects') return () => actions.openApp('Projects', origin);
   return undefined;
 }
 

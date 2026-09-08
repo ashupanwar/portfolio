@@ -1,11 +1,13 @@
-import { useMemo, useRef } from 'react';
+import { Suspense, useMemo, useRef } from 'react';
 import { Text } from '@react-three/drei';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useLoader } from '@react-three/fiber';
 import * as THREE from 'three';
+import { SVGLoader, type SVGResult } from 'three/examples/jsm/loaders/SVGLoader.js';
 import { CONTACTS, DESIGN, LAYER, usePhone } from '../usePhone';
 import { roundedRectGeometry } from '../shapes';
 import { StatusBar } from '../screens';
 import { FONT, FONT_SEMIBOLD } from '../typography';
+import { asset } from '../../lib/asset';
 
 /** Contacts is a light app on a dark system, like Notes, Phone and Messages. */
 const PAPER = '#ffffff';
@@ -142,54 +144,47 @@ function MessageGlyph({ color }: { color: string }) {
   );
 }
 
-/** Handset silhouette, for the Call action. */
-function CallGlyph({ color }: { color: string }) {
-  const geometry = useMemo(() => {
-    const shape = new THREE.Shape();
-    shape.moveTo(-7, 4);
-    shape.quadraticCurveTo(-8.5, 5.5, -7, 7);
-    shape.quadraticCurveTo(-3, 11, 0, 8);
-    shape.quadraticCurveTo(1.5, 6.5, 0, 5);
-    shape.quadraticCurveTo(-1.5, 3.5, -3, 1.5);
-    shape.quadraticCurveTo(-4.5, -0.5, -6.5, -3);
-    shape.quadraticCurveTo(-8, -4.5, -6.5, -6.5);
-    shape.quadraticCurveTo(-5, -8, -3.5, -6.5);
-    shape.quadraticCurveTo(1, -2, 5, 3);
-    shape.quadraticCurveTo(8, 7, 8.5, 9.5);
-    shape.quadraticCurveTo(9.5, 11.5, 7.5, 12);
-    shape.quadraticCurveTo(4, 12.5, 1.5, 9);
-    shape.quadraticCurveTo(-2.5, 4.5, -7, 4);
-    shape.closePath();
-    return new THREE.ShapeGeometry(shape);
-  }, []);
+/**
+ * A real icon, loaded from its own SVG (Heroicons' solid set) and rendered
+ * as filled vector shapes rather than a raster texture -- consistent with
+ * how every other glyph on this phone is drawn, and crisp regardless of
+ * camera distance. SVG space is 24x24 with y pointing down; flipping the
+ * outer group's y scale and re-centring on the inner one converts that into
+ * this scene's centred, y-up convention.
+ */
+function SvgGlyph({ file, color, size }: { file: string; color: string; size: number }) {
+  const svg = useLoader(SVGLoader, asset(`/icons/contacts/${file}`)) as SVGResult;
+  const geometries = useMemo(
+    () =>
+      svg.paths
+        .flatMap((path: THREE.ShapePath) => path.toShapes())
+        .map((shape: THREE.Shape) => new THREE.ShapeGeometry(shape)),
+    [svg],
+  );
+  const scale = size / 24;
+
   return (
-    <mesh geometry={geometry} rotation={[0, 0, -Math.PI / 4]} scale={0.58}>
-      <meshBasicMaterial color={color} toneMapped={false} />
-    </mesh>
+    <group scale={[scale, -scale, 1]}>
+      <group position={[-12, -12, 0]}>
+        {geometries.map((geometry, index) => (
+          <mesh key={index} geometry={geometry}>
+            <meshBasicMaterial color={color} toneMapped={false} />
+          </mesh>
+        ))}
+      </group>
+    </group>
   );
 }
 
-/** Rounded rect with a small trailing triangle "lens", for the Video action. */
+/** The Call action's real handset icon. Sized to match MessageGlyph's own
+ *  pre-wrapper scale -- ActionButton applies a shared 1.9x on top of both. */
+function CallGlyph({ color }: { color: string }) {
+  return <SvgGlyph file="call.svg" color={color} size={12.5} />;
+}
+
+/** The Video action's real camera icon, sized the same way. */
 function VideoGlyph({ color }: { color: string }) {
-  const body = useMemo(() => roundedRectGeometry(13, 9.5, 2.5), []);
-  const lens = useMemo(() => {
-    const shape = new THREE.Shape();
-    shape.moveTo(-3, 3.2);
-    shape.lineTo(3, 0);
-    shape.lineTo(-3, -3.2);
-    shape.closePath();
-    return new THREE.ShapeGeometry(shape);
-  }, []);
-  return (
-    <group scale={0.62}>
-      <mesh geometry={body} position={[-2, 0, 0]}>
-        <meshBasicMaterial color={color} toneMapped={false} />
-      </mesh>
-      <mesh geometry={lens} position={[7.5, 0, 0]}>
-        <meshBasicMaterial color={color} toneMapped={false} />
-      </mesh>
-    </group>
-  );
+  return <SvgGlyph file="video.svg" color={color} size={12.5} />;
 }
 
 /** One of the three round action buttons under a contact's name. Cosmetic --
@@ -209,7 +204,9 @@ function ActionButton({
         <circleGeometry args={[26, 40]} />
         <meshBasicMaterial color="#e3f7e8" toneMapped={false} />
       </mesh>
-      <group position={[0, 0, LAYER]} scale={1.9}>{icon(GREEN)}</group>
+      <group position={[0, 0, LAYER]} scale={1.9}>
+        <Suspense fallback={null}>{icon(GREEN)}</Suspense>
+      </group>
       <Text
         font={FONT}
         position={[0, -40, 0]}

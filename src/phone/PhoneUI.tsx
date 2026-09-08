@@ -15,6 +15,8 @@ import { SettingsApp } from './apps/SettingsApp';
 import { ContactsApp } from './apps/ContactsApp';
 import { SkillsApp } from './apps/SkillsApp';
 import { ExperienceApp } from './apps/ExperienceApp';
+import { PhotosApp } from './apps/PhotosApp';
+import { ProjectsApp } from './apps/ProjectsApp';
 
 /** How far up you must drag to unlock, as a fraction of screen height. */
 const SWIPE_DISTANCE = 0.3;
@@ -181,6 +183,8 @@ export function PhoneUI() {
         {app === 'Contacts' && <ContactsApp />}
         {app === 'Skills' && <SkillsApp />}
         {app === 'Experience' && <ExperienceApp />}
+        {app === 'Photos' && <PhotosApp />}
+        {app === 'Projects' && <ProjectsApp />}
       </group>
 
       {/* Above every screen and outside the faded groups: it is part of the

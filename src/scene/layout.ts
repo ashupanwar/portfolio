@@ -199,6 +199,52 @@ export const SHOTS = {
 } as const;
 
 /**
+ * Our own video plane for the TV, floated a hair proud of the model's baked
+ * CRT screen -- same trick as SCREEN.z for the phone, since neither model
+ * ships a separate screen mesh. Faces the same direction the 'tv' shot's
+ * camera stands off along, so it reads square-on from that framing.
+ *
+ * Unlike the phone, `SHOTS.tv.target` is not a surface point -- it is the
+ * TV body's own bounding-box centre (see that shot's own comment), roughly
+ * in the middle of a ~0.5m-deep CRT cabinet. Measured against the tube
+ * mesh's own bounds (`TV0011_low_TV_0`, logged via useReportBounds), the
+ * front glass sits about 0.52m further forward along the normal than that
+ * centre point -- so the offset here is a real distance, not a hair.
+ */
+const TV_NORMAL = new THREE.Vector3(
+  SHOTS.tv.position[0] - SHOTS.tv.target[0],
+  0,
+  SHOTS.tv.position[2] - SHOTS.tv.target[2],
+).normalize();
+
+const TV_FRONT_OFFSET = 0.53;
+
+/**
+ * The plane's own "screen right" as seen from the 'tv' shot's camera --
+ * `TV_NORMAL` rotated -90deg about Y. Used to nudge the plane sideways in
+ * on-screen terms rather than guessing which world axis that corresponds to.
+ */
+const TV_RIGHT = new THREE.Vector3(TV_NORMAL.z, 0, -TV_NORMAL.x);
+
+/** A ~2px nudge at the 'tv' shot's framing, eyeballed against the render. */
+const TV_SCREEN_NUDGE = 0.003;
+
+export const TV_SCREEN = {
+  position: [
+    SHOTS.tv.target[0] +
+      TV_NORMAL.x * TV_FRONT_OFFSET +
+      TV_RIGHT.x * TV_SCREEN_NUDGE,
+    0.555,
+    SHOTS.tv.target[2] +
+      TV_NORMAL.z * TV_FRONT_OFFSET +
+      TV_RIGHT.z * TV_SCREEN_NUDGE,
+  ] as [number, number, number],
+  rotationY: Math.atan2(TV_NORMAL.x, TV_NORMAL.z),
+  width: 0.305,
+  height: 0.17,
+} as const;
+
+/**
  * The clickable marker that invites you to the phone. Floats just off its corner.
  *
  * `side` is which way the leader line and label extend: -1 for left, 1 for right.

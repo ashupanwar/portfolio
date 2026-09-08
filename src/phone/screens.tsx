@@ -633,6 +633,12 @@ function APP_ACTIONS(
   if (name === 'Notes') return () => actions.openApp('Notes', origin);
   if (name === 'Phone') return () => actions.openApp('Phone', origin);
   if (name === 'Messages') return () => actions.openApp('Messages', origin);
+  if (name === 'Music') return () => actions.openApp('Music', origin);
+  if (name === 'Camera') return () => actions.openApp('Camera', origin);
+  if (name === 'Settings') return () => actions.openApp('Settings', origin);
+  if (name === 'Contacts') return () => actions.openApp('Contacts', origin);
+  if (name === 'Skills') return () => actions.openApp('Skills', origin);
+  if (name === 'Experience') return () => actions.openApp('Experience', origin);
   return undefined;
 }
 

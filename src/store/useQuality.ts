@@ -10,26 +10,23 @@ export const TIER_SETTINGS = {
 } as const satisfies Record<Tier, unknown>;
 
 /**
- * Best-effort guess at what this device can hold 60fps on. Deliberately
- * conservative: self-detection is never right for everyone, which is why the
- * user can always override it.
+ * Everyone starts at `high` -- there is no reliable signal left to downgrade
+ * on. This used to branch on `navigator.deviceMemory` and
+ * `hardwareConcurrency`, but those are exactly the APIs Safari nerfs for
+ * fingerprinting resistance: `deviceMemory` doesn't exist on iOS at all, and
+ * `hardwareConcurrency` is capped well below the chip's real core count. The
+ * result was every iPhone reading as weak hardware and getting knocked down
+ * to `medium` or `low` regardless of how capable it actually was -- a phone
+ * quietly rendering at a lower dpr, with shadows and post both off, while a
+ * laptop on the same page got the full budget. There is also no settings UI
+ * to opt back up, so a wrong read here was permanent for that visit.
  *
- * Judged purely on capability (memory, cores), not on input type. A phone
- * and a laptop with the same specs get the same tier -- there used to be a
- * blanket downgrade to `medium` for any coarse (touch) pointer, on the
- * assumption that touch means mobile means weaker hardware, but that
- * conflated "phone" with "underpowered": plenty of phones can hold the same
- * dpr/shadows/post budget a laptop does, and the flat downgrade capped their
- * render resolution well below their own screen's real pixel density,
- * reading as blurry rather than merely conservative.
+ * This is one small room, not an open world -- `high`'s budget (dpr up to 2,
+ * shadows, post) is not a stretch for the phones this site is actually
+ * viewed on. `setTier` and the `locked` flag stay in place for a future
+ * manual quality toggle, but nothing calls them yet.
  */
 function detectTier(): Tier {
-  if (typeof navigator === 'undefined') return 'medium';
-
-  const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8;
-  const cores = navigator.hardwareConcurrency ?? 4;
-
-  if (memory <= 4 || cores <= 4) return 'low';
   return 'high';
 }
 

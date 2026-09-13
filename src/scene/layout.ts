@@ -170,7 +170,7 @@ export const SHOTS = {
    * margin needs about (0.147 / 2 * 1.3) / tan(17deg) ~= 0.31m.
    */
   phone: {
-    position: [PHONE.position[0], PHONE.position[1] + 0.32, PHONE.position[2]],
+    position: [PHONE.position[0], PHONE.position[1] + 0.2, PHONE.position[2]],
     target: [PHONE.position[0], PHONE.position[1], PHONE.position[2]],
     up: PHONE_UP,
   },
@@ -242,6 +242,74 @@ export const TV_SCREEN = {
   rotationY: Math.atan2(TV_NORMAL.x, TV_NORMAL.z),
   width: 0.305,
   height: 0.17,
+} as const;
+
+/**
+ * A pinned poster on the side wall (`Wall002` -- the one the establishing
+ * shot's leftward look-around reveals, per `LOOK_LIMIT`'s own comment; the
+ * back wall's matching rightward look is capped far tighter because that
+ * side runs off the room's open edge almost immediately, so nothing pinned
+ * there would ever really be seen), to the right of that wall's own curtain.
+ *
+ * "Right" here is screen-right for someone facing this wall (looking down
+ * -x, the direction its own window looks out along, per `WINDOWS`) -- with
+ * up = +y that puts screen-right toward -z, i.e. back toward the corner
+ * with the back wall. `Curatin02` (the curtain on this wall) spans
+ * z = [0.222, 2.052], and the wall itself runs to z = -0.534 at that corner,
+ * so the gap between them -- z = [-0.534, 0.222] -- is the clear run of
+ * wall to the curtain's right. Centred in it, clear of both edges.
+ *
+ * x is the wall's own face (`Wall002_low` centre x + half its depth, toward
+ * the room -- same "window looks out, so the room is the other side" logic
+ * as the poster's z), floated a few millimetres proud of it so it never
+ * z-fights the wall behind it -- the same trick as the phone and TV screens.
+ * rotation faces the plane's default +z normal to run along the wall's own
+ * +x (into the room): a 90deg turn about y sends (0,0,1) to (1,0,0).
+ */
+export const POSTER = {
+  position: [-1.5295, 1.0, -0.2] as [number, number, number],
+  rotationY: Math.PI / 2,
+  width: 0.28,
+  height: 0.28 * (597 / 335),
+} as const;
+
+/**
+ * A second poster pinned beside the first, further along the same clear run
+ * of `Wall002` -- "left" of it being +z on this wall, per `POSTER`'s own
+ * screen-right/-z note above, so this sits at a larger z than `POSTER`.
+ * The clear run only reaches to `Curatin02`'s z = 0.222 start, and `POSTER`
+ * already fills up to z = -0.06 (its centre plus half its own width), so
+ * this is narrower than `POSTER` to leave a gap on both sides.
+ */
+const POSTER2_WIDTH = 0.28;
+export const POSTER2 = {
+  position: [
+    POSTER.position[0] + 0.0001,
+    POSTER.position[1] + 0.34,
+    POSTER.position[2] - 0.05 + POSTER.width / 2 + 0.02 + POSTER2_WIDTH / 2,
+  ] as [number, number, number],
+  rotationY: Math.PI / 2,
+  width: POSTER2_WIDTH,
+  height: POSTER2_WIDTH * (1920 / 1080),
+} as const;
+
+/**
+ * A third, landscape poster above the other two -- below the run is the
+ * TV, standing close enough in front of this wall that its silhouette
+ * covers almost that entire lower band from the establishing angle, so
+ * there is more usable clearance above `POSTER2`'s top (~1.59) than below
+ * `POSTER`'s bottom. Centred in the same z corridor as the others.
+ */
+const POSTER3_WIDTH = 0.4;
+export const POSTER3 = {
+  position: [POSTER.position[0] + 0.0002, 1.72, -0.156] as [
+    number,
+    number,
+    number,
+  ],
+  rotationY: Math.PI / 2,
+  width: POSTER3_WIDTH,
+  height: POSTER3_WIDTH * (739 / 1000),
 } as const;
 
 /**

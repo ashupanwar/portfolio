@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { OrbitControls } from '@react-three/drei';
 import { Bloom, EffectComposer, Noise, Vignette } from '@react-three/postprocessing';
-import { Lamp, Phone, RoomModel } from './Models';
+import { Lamp, Phone, Poster, RoomModel } from './Models';
 import { CeilingLight } from './CeilingLight';
 import { Screen } from './Screen';
 import { TvScreen } from './TvScreen';
@@ -64,6 +64,7 @@ export function Experience() {
         <CeilingLight x={-0.75} z={0.1} intensity={7} />
         <CeilingLight x={0.6} z={1.3} intensity={6} />
         <Lamp />
+        <Poster />
         <Phone>{!NO_SCREEN && <Screen />}</Phone>
         {!NO_SCREEN && <TvScreen />}
         <PhoneHotspot />

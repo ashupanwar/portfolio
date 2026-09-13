@@ -92,6 +92,11 @@ export function applyScreenMaterial(
 
       m.transparent = true;
       m.opacity = m.userData.baseOpacity * opacity;
+      // `ownClipping` is how a screen keeps a tighter clip region of its own
+      // (Projects' scrolling list clips to its viewport, not the whole
+      // screen). Only the clip region is left alone -- the fade above still
+      // applies, so such a screen still transitions with everything else.
+      if (m.userData.ownClipping) continue;
       // Assigning planes swaps the shader's clipping defines, so only do it
       // once per material rather than every frame.
       if (m.clippingPlanes !== clippingPlanes) {

@@ -1,9 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Text } from '@react-three/drei';
+import { useFrame, type ThreeEvent } from '@react-three/fiber';
+import * as THREE from 'three';
 import { roundedRectGeometry } from '../shapes';
 import { DESIGN, EXPERIENCE, LAYER, usePhone } from '../usePhone';
 import { StatusBar } from '../screens';
 import { FONT, FONT_SEMIBOLD } from '../typography';
+import { useViewportClipping } from '../useViewportClipping';
 
 /** Dark on dark, like Music and Skills -- there is no real "Experience" app
  *  to clone, so this borrows the system's own default palette and tints its
@@ -20,11 +23,22 @@ const LEFT = -DESIGN.width / 2 + PAD;
 const NAV_Y = 352;
 const TITLE_Y = 306;
 const LIST_TOP = TITLE_Y - 56;
+/** Where the scrollable list is clipped at the bottom, clear of the home
+ *  indicator. */
+const LIST_BOTTOM = -DESIGN.height / 2 + 50;
 const CARD_GAP = 14;
 const CARD_W = DESIGN.width - PAD * 2;
 const CARD_PAD_X = 16;
 
+/** Header height when its subtitle fits on one line. */
 const COLLAPSED_H = 74;
+const SUBTITLE_FONT = 12.5;
+const SUBTITLE_LINE = 15;
+/** Roughly how many characters the subtitle fits per line at its font size
+ *  and width, so a wrapping one ("Expand My Business · Gurgaon · ...") can
+ *  grow its header instead of running into the divider below. */
+const SUBTITLE_CHARS_PER_LINE = 44;
+
 const BULLET_FONT = 12;
 const BULLET_LINE = 16;
 const BULLET_GAP = 8;
@@ -33,8 +47,18 @@ const BULLET_GAP = 8;
  *  waiting on troika's own async text layout. */
 const CHARS_PER_LINE = 48;
 
-function estimateLines(text: string) {
-  return Math.max(1, Math.ceil(text.length / CHARS_PER_LINE));
+function estimateLines(text: string, charsPerLine = CHARS_PER_LINE) {
+  return Math.max(1, Math.ceil(text.length / charsPerLine));
+}
+
+function subtitle(role: (typeof EXPERIENCE)[number]) {
+  return `${role.company} · ${role.location} · ${role.startDate} – ${role.endDate}`;
+}
+
+/** The always-visible part of a card: title, subtitle and chevron. */
+function headerHeight(role: (typeof EXPERIENCE)[number]) {
+  const extraLines = estimateLines(subtitle(role), SUBTITLE_CHARS_PER_LINE) - 1;
+  return COLLAPSED_H + extraLines * SUBTITLE_LINE;
 }
 
 function bulletsHeight(highlights: readonly string[]) {
@@ -42,8 +66,8 @@ function bulletsHeight(highlights: readonly string[]) {
   return lines * BULLET_LINE + (highlights.length - 1) * BULLET_GAP;
 }
 
-function expandedHeight(highlights: readonly string[]) {
-  return COLLAPSED_H + 14 + bulletsHeight(highlights) + 18;
+function expandedHeight(role: (typeof EXPERIENCE)[number]) {
+  return headerHeight(role) + 14 + bulletsHeight(role.highlights) + 18;
 }
 
 /** Chevron pointing left, for the nav bar's back control. */
@@ -144,18 +168,22 @@ function ExperienceCard({
   height,
   open,
   onToggle,
+  dragged,
 }: {
   role: (typeof EXPERIENCE)[number];
   centerY: number;
   height: number;
   open: boolean;
   onToggle: () => void;
+  /** Whether the pointer moved since it went down -- a drag-to-scroll that
+   *  starts on a card would otherwise toggle it on release. */
+  dragged: React.RefObject<boolean>;
 }) {
   const card = useMemo(() => roundedRectGeometry(CARD_W, height, 18), [height]);
   const hit = useMemo(() => roundedRectGeometry(CARD_W, height, 18), [height]);
   const divider = useMemo(() => roundedRectGeometry(CARD_W - CARD_PAD_X * 2, 1, 0.5), []);
   const top = height / 2;
-  const dividerY = top - COLLAPSED_H + 8;
+  const dividerY = top - headerHeight(role) + 8;
 
   let bulletTop = dividerY - 14;
   const bullets = role.highlights.map((text) => {
@@ -175,6 +203,7 @@ function ExperienceCard({
         position={[0, 0, LAYER]}
         onClick={(event) => {
           event.stopPropagation();
+          if (dragged.current) return;
           onToggle();
         }}
       >
@@ -196,13 +225,14 @@ function ExperienceCard({
       <Text
         font={FONT}
         position={[-CARD_W / 2 + CARD_PAD_X, top - 42, LAYER]}
-        fontSize={12.5}
+        fontSize={SUBTITLE_FONT}
         color={MUTED}
         anchorX="left"
         anchorY="top"
+        lineHeight={SUBTITLE_LINE / SUBTITLE_FONT}
         maxWidth={CARD_W - CARD_PAD_X * 2}
       >
-        {`${role.company} · ${role.location} · ${role.startDate} – ${role.endDate}`}
+        {subtitle(role)}
       </Text>
 
       <group position={[CARD_W / 2 - CARD_PAD_X - 4, top - 22, LAYER]}>
@@ -226,6 +256,11 @@ function ExperienceCard({
 /**
  * The Experience app: a single column of full-width role cards, each
  * expanding in place to show its highlights when tapped.
+ *
+ * Collapsed, the four cards fit one screen; expanded, they run well past
+ * it, so the list drags vertically -- the same gesture as Projects. How far
+ * it can go is recomputed as cards open and close, and the scroll is pulled
+ * back inside the new range when a card collapses out from under it.
  */
 export function ExperienceApp() {
   const closeApp = usePhone((s) => s.closeApp);
@@ -235,22 +270,60 @@ export function ExperienceApp() {
     () => roundedRectGeometry(DESIGN.width, DESIGN.height, 0.17 * DESIGN.width),
     [],
   );
+  const catcher = useMemo(() => roundedRectGeometry(DESIGN.width, DESIGN.height, 0), []);
   const indicator = useMemo(() => roundedRectGeometry(130, 5, 2.5), []);
+
+  const screenRef = useRef<THREE.Group>(null);
+  const listRef = useRef<THREE.Group>(null);
+  const scroll = useRef(0);
+  const drag = useRef({ active: false, startY: 0, startScroll: 0 });
+  const dragged = useRef(false);
 
   let cursor = LIST_TOP;
   const positioned = EXPERIENCE.map((role, index) => {
-    const height = open[index] ? expandedHeight(role.highlights) : COLLAPSED_H;
+    const height = open[index] ? expandedHeight(role) : headerHeight(role);
     const centerY = cursor - height / 2;
     cursor -= height + CARD_GAP;
     return { role, index, centerY, height };
   });
+  const contentHeight = LIST_TOP - (cursor + CARD_GAP);
+  const maxScroll = Math.max(0, contentHeight - (LIST_TOP - LIST_BOTTOM));
+
+  useFrame(() => {
+    scroll.current = Math.min(scroll.current, maxScroll);
+    if (listRef.current) listRef.current.position.y += (scroll.current - listRef.current.position.y) * 0.3;
+  });
+
+  useViewportClipping(screenRef, listRef, { top: LIST_TOP, bottom: LIST_BOTTOM });
+
+  function localY(event: ThreeEvent<PointerEvent>) {
+    return event.object.worldToLocal(event.point.clone()).y;
+  }
 
   return (
-    <group>
+    <group ref={screenRef}>
       <mesh geometry={screenGeometry}>
         <meshBasicMaterial color={BACKDROP} toneMapped={false} />
       </mesh>
 
+      <group ref={listRef}>
+        {positioned.map(({ role, index, centerY, height }) => (
+          <ExperienceCard
+            key={role.company}
+            role={role}
+            centerY={centerY}
+            height={height}
+            open={open[index]}
+            onToggle={() =>
+              setOpen((prev) => prev.map((value, i) => (i === index ? !value : value)))
+            }
+            dragged={dragged}
+          />
+        ))}
+      </group>
+
+      {/* Chrome above the scrolling list, on its own layer so it never
+          slides with the cards. */}
       <group position={[0, 0, LAYER * 7]}>
         <StatusBar />
       </group>
@@ -259,7 +332,7 @@ export function ExperienceApp() {
 
       <Text
         font={FONT_SEMIBOLD}
-        position={[LEFT, TITLE_Y, LAYER]}
+        position={[LEFT, TITLE_Y, LAYER * 7]}
         fontSize={32}
         color={INK}
         anchorX="left"
@@ -268,22 +341,40 @@ export function ExperienceApp() {
         Experience
       </Text>
 
-      {positioned.map(({ role, index, centerY, height }) => (
-        <ExperienceCard
-          key={role.company}
-          role={role}
-          centerY={centerY}
-          height={height}
-          open={open[index]}
-          onToggle={() =>
-            setOpen((prev) => prev.map((value, i) => (i === index ? !value : value)))
-          }
-        />
-      ))}
+      {/* Invisible drag catcher, above the cards so it intercepts the drag
+          start everywhere -- including on top of a card -- and below the
+          nav chrome. A plain tap still reaches the card beneath: only a
+          real drag stops the click from propagating. */}
+      <mesh
+        geometry={catcher}
+        position={[0, 0, LAYER * 6]}
+        onPointerDown={(event) => {
+          event.stopPropagation();
+          drag.current = { active: true, startY: localY(event), startScroll: scroll.current };
+          dragged.current = false;
+        }}
+        onPointerMove={(event) => {
+          if (!drag.current.active) return;
+          const delta = localY(event) - drag.current.startY;
+          if (Math.abs(delta) > 4) dragged.current = true;
+          scroll.current = THREE.MathUtils.clamp(drag.current.startScroll + delta, 0, maxScroll);
+        }}
+        onPointerUp={() => {
+          drag.current.active = false;
+        }}
+        onPointerLeave={() => {
+          drag.current.active = false;
+        }}
+        onClick={(event) => {
+          if (dragged.current) event.stopPropagation();
+        }}
+      >
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
 
       <mesh
         geometry={indicator}
-        position={[0, -DESIGN.height / 2 + 13, LAYER * 7]}
+        position={[0, -DESIGN.height / 2 + 13, LAYER * 9]}
         onClick={(event) => {
           event.stopPropagation();
           closeApp();

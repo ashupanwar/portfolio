@@ -203,17 +203,17 @@ export const PROJECTS = [
   {
     name: 'Care.medanta.org',
     url: 'https://care.medanta.org',
-    image: null as string | null,
+    image: asset('/projects/medanta-care.webp') as string | null,
   },
   {
     name: 'Max Hospitals',
-    url: 'https://maxhospitals.com',
-    image: null as string | null,
+    url: 'https://www.maxhealthcare.in/',
+    image: asset('/projects/max-healthcare.webp') as string | null,
   },
   {
     name: 'EMB.global',
     url: 'https://emb.global',
-    image: null as string | null,
+    image: asset('/projects/emb-global.webp') as string | null,
   },
   {
     name: 'Freta',
@@ -228,7 +228,7 @@ export const PROJECTS = [
   {
     name: 'Portfolio Website',
     url: 'https://ashupanwar.github.io/portfolio/',
-    image: null as string | null,
+    image: asset('/projects/portfolio-website.webp') as string | null,
   },
 ] as const;
 

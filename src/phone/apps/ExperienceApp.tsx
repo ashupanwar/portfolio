@@ -66,8 +66,48 @@ function bulletsHeight(highlights: readonly string[]) {
   return lines * BULLET_LINE + (highlights.length - 1) * BULLET_GAP;
 }
 
+/** The stack chips under the highlights: small pills that wrap into rows. */
+const CHIP_FONT = 10.5;
+const CHIP_H = 22;
+const CHIP_PAD_X = 9;
+const CHIP_GAP = 6;
+const CHIP_ROW_GAP = 6;
+/** Average glyph advance at `CHIP_FONT` for this face -- a budget for the
+ *  chip's own width, since troika lays text out asynchronously. */
+const CHIP_CHAR_W = 6;
+/** Space between the last highlight and the first row of chips. */
+const CHIPS_TOP_GAP = 14;
+
+function chipWidth(label: string) {
+  return label.length * CHIP_CHAR_W + CHIP_PAD_X * 2;
+}
+
+/** Greedy row layout for the chips, in the card's own coordinates: x is
+ *  the chip's left edge from the card's inner left, y the row index. */
+function layoutChips(stack: readonly string[]) {
+  const maxW = CARD_W - CARD_PAD_X * 2;
+  const rows: { label: string; x: number; row: number; width: number }[] = [];
+  let x = 0;
+  let row = 0;
+  for (const label of stack) {
+    const width = chipWidth(label);
+    if (x > 0 && x + width > maxW) {
+      x = 0;
+      row += 1;
+    }
+    rows.push({ label, x, row, width });
+    x += width + CHIP_GAP;
+  }
+  return rows;
+}
+
+function chipsHeight(stack: readonly string[]) {
+  const rowCount = layoutChips(stack).at(-1)!.row + 1;
+  return CHIPS_TOP_GAP + rowCount * CHIP_H + (rowCount - 1) * CHIP_ROW_GAP;
+}
+
 function expandedHeight(role: (typeof EXPERIENCE)[number]) {
-  return headerHeight(role) + 14 + bulletsHeight(role.highlights) + 18;
+  return headerHeight(role) + 14 + bulletsHeight(role.highlights) + chipsHeight(role.stack) + 18;
 }
 
 /** Chevron pointing left, for the nav bar's back control. */
@@ -157,9 +197,31 @@ function Highlight({ text, top }: { text: string; top: number }) {
   );
 }
 
+/** One technology from a role's stack, as a small tinted pill. */
+function Chip({ label, x, y, width }: { label: string; x: number; y: number; width: number }) {
+  const pill = useMemo(() => roundedRectGeometry(width, CHIP_H, CHIP_H / 2), [width]);
+  return (
+    <group position={[x + width / 2, y - CHIP_H / 2, 0]}>
+      <mesh geometry={pill}>
+        <meshBasicMaterial color={AMBER} transparent opacity={0.16} toneMapped={false} />
+      </mesh>
+      <Text
+        font={FONT_SEMIBOLD}
+        position={[0, 0, LAYER]}
+        fontSize={CHIP_FONT}
+        color={AMBER}
+        anchorX="center"
+        anchorY="middle"
+      >
+        {label}
+      </Text>
+    </group>
+  );
+}
+
 /**
  * One role: a heading (title, company, dates) always visible, and its
- * highlights revealed below when tapped. Full-width, so the card itself --
+ * highlights and stack revealed below when tapped. Full-width, so the card itself --
  * not a grid cell -- is the unit of the list.
  */
 function ExperienceCard({
@@ -191,6 +253,9 @@ function ExperienceCard({
     bulletTop -= estimateLines(text) * BULLET_LINE + BULLET_GAP;
     return node;
   });
+  // `bulletTop` has already stepped past the last bullet's trailing gap.
+  const chipsTop = bulletTop + BULLET_GAP - CHIPS_TOP_GAP;
+  const chips = layoutChips(role.stack);
 
   return (
     <group position={[0, centerY, LAYER]}>
@@ -247,6 +312,17 @@ function ExperienceCard({
           {bullets.map((bullet) => (
             <Highlight key={bullet.text} text={bullet.text} top={bullet.top} />
           ))}
+          <group position={[-CARD_W / 2 + CARD_PAD_X, chipsTop, LAYER]}>
+            {chips.map((chip) => (
+              <Chip
+                key={chip.label}
+                label={chip.label}
+                x={chip.x}
+                y={-chip.row * (CHIP_H + CHIP_ROW_GAP)}
+                width={chip.width}
+              />
+            ))}
+          </group>
         </group>
       )}
     </group>

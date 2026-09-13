@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useIsMobile } from '../store/useIsMobile';
 import { Billboard, Line, Text } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -41,6 +42,11 @@ function Hotspot({ config, onSelect }: { config: HotspotConfig; onSelect?: () =>
   const [hovered, setHovered] = useState(false);
   const shot = useCamera((state) => state.shot);
   const moving = useCamera((state) => state.moving);
+  // Doubled on phone-sized viewports: the labels are legible on a laptop at
+  // this size, but read as fine print at the shorter viewing distance and
+  // higher pixel density a phone is actually held at.
+  const isMobile = useIsMobile();
+  const fontSize = LEADER.fontSize * (isMobile ? 2 : 1);
 
   const ring = useRef<THREE.Mesh>(null);
   const group = useRef<THREE.Group>(null);
@@ -102,24 +108,35 @@ function Hotspot({ config, onSelect }: { config: HotspotConfig; onSelect?: () =>
       >
         {/* Generous invisible disc so the dot is easy to hit without having to
             make the visible dot clumsily large. */}
-        <mesh>
+        <mesh renderOrder={1000}>
           <circleGeometry args={[0.028, 24]} />
-          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+          <meshBasicMaterial transparent opacity={0} depthWrite={false} depthTest={false} />
         </mesh>
 
-        <mesh>
+        <mesh renderOrder={1000}>
           <circleGeometry args={[0.007, 24]} />
-          <meshBasicMaterial color="#ffffff" toneMapped={false} />
+          <meshBasicMaterial color="#ffffff" toneMapped={false} depthTest={false} />
         </mesh>
 
-        <mesh ref={ring}>
+        <mesh ref={ring} renderOrder={1000}>
           <ringGeometry args={[0.0085, 0.0105, 32]} />
-          <meshBasicMaterial color="#ffffff" transparent opacity={0.35} toneMapped={false} />
+          <meshBasicMaterial
+            color="#ffffff"
+            transparent
+            opacity={0.35}
+            toneMapped={false}
+            depthTest={false}
+          />
         </mesh>
 
         {/* Diagonal out of the dot, then a horizontal shelf for the label to
             sit on -- the elbow is what makes it read as an annotation rather
-            than a stray line. */}
+            than a stray line. depthTest is off on the whole annotation (dot,
+            ring, line and label): it is a "look here" marker floating over
+            the room, not scene geometry, and without it the leader line and
+            label -- flat, billboarded, so nearer/farther is arbitrary -- get
+            swallowed by whatever the camera angle happens to put in front of
+            their anchor point, like the curtain at some framings. */}
         <Line
           points={[
             [LEADER.start * side, LEADER.start, 0],
@@ -131,25 +148,37 @@ function Hotspot({ config, onSelect }: { config: HotspotConfig; onSelect?: () =>
           transparent
           opacity={line}
           toneMapped={false}
+          depthTest={false}
+          renderOrder={1000}
         />
 
         <Text
           // Sits on the shelf's own y with a middle anchor, so the line meets
           // the label at its vertical centre instead of running under it.
           position={[(shelfEnd + LEADER.labelGap) * side, LEADER.elbow, 0]}
-          fontSize={LEADER.fontSize}
+          fontSize={fontSize}
           color="#ffffff"
           anchorX={side < 0 ? 'right' : 'left'}
           anchorY="middle"
+          textAlign={side < 0 ? 'right' : 'left'}
           letterSpacing={0.02}
+          lineHeight={1.2}
+          // Caps the label's own width rather than its font size, so the
+          // doubled mobile size wraps onto a second line instead of running
+          // further off the side of a narrower frame -- sized to the widest
+          // label ("Ashu's iPhone") at the *un-doubled* size, so desktop
+          // still reads as one line and mobile wraps to roughly two even ones.
+          maxWidth={0.22}
           // The label crosses both the lit pool and the dark desk, so it needs
           // its own contrast rather than relying on whatever is behind it.
           outlineWidth={0.0012}
           outlineColor="#000000"
           outlineOpacity={0.55}
+          renderOrder={1000}
           material-toneMapped={false}
           material-transparent
           material-opacity={hovered ? 1 : 0.88}
+          material-depthTest={false}
         >
           {config.label}
         </Text>

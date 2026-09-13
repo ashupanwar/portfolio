@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
-import { useGLTF } from '@react-three/drei';
+import { useGLTF, useTexture } from '@react-three/drei';
 import { createPortal } from '@react-three/fiber';
 import * as THREE from 'three';
-import { LAMP, LAMP_TARGET, PHONE, ROOM_MODEL, SCREEN } from './layout';
+import { LAMP, LAMP_TARGET, PHONE, POSTER, POSTER2, POSTER3, ROOM_MODEL, SCREEN } from './layout';
 import { asset } from '../lib/asset';
 
 const DRACO = asset('/draco/');
@@ -51,11 +51,45 @@ function useReportBounds(object: THREE.Object3D | null, label: string, children 
   }, [object, label, children]);
 }
 
+/**
+ * Recolours a set of named materials to a flat colour, dropping their
+ * baseColorTexture rather than tinting it -- multiplying a baked texture by
+ * a colour only scales its existing RGB ratios, so a print or pattern baked
+ * into that texture keeps its own hue (and, for the walls, keeps the star
+ * decals painted onto it) no matter what colour you multiply by. The normal
+ * and metallic-roughness maps are left alone, so surfaces still shade
+ * correctly under the room's lighting -- only the colour/pattern layer goes.
+ */
+function useFlatColor(object: THREE.Object3D, materialNames: Set<string>, color: THREE.Color) {
+  useLayoutEffect(() => {
+    object.traverse((child) => {
+      const mesh = child as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      const material = mesh.material as THREE.MeshStandardMaterial;
+      if (material && materialNames.has(material.name)) {
+        material.map = null;
+        material.color.copy(color);
+        material.needsUpdate = true;
+      }
+    });
+  }, [object, materialNames, color]);
+}
+
+const CURTAIN_COLOR = new THREE.Color('#8c8c8c');
+const CURTAIN_MATERIALS = new Set(['Curatin01', 'Curatin02']);
+
+/** The wall texture also carries the room's painted-on yellow stars, so
+ *  flattening the walls to a colour removes those along with the blue. */
+const WALL_COLOR = new THREE.Color('#ffffff');
+const WALL_MATERIALS = new Set(['Wall.001', 'Wall.002']);
+
 export function RoomModel() {
   const { scene } = useGLTF(asset('/models/room.glb'), DRACO);
   const model = useMemo(() => scene.clone(true), [scene]);
   useShadows(model);
   useReportBounds(model, 'room');
+  useFlatColor(model, CURTAIN_MATERIALS, CURTAIN_COLOR);
+  useFlatColor(model, WALL_MATERIALS, WALL_COLOR);
 
   return (
     <primitive
@@ -64,6 +98,38 @@ export function RoomModel() {
       rotation={ROOM_MODEL.rotation}
       scale={ROOM_MODEL.scale}
     />
+  );
+}
+
+interface PosterLayout {
+  position: readonly [number, number, number];
+  rotationY: number;
+  width: number;
+  height: number;
+}
+
+/** A pinned photo on the wall, floated a hair proud of it -- same trick as
+ *  the phone and TV screens, since a coplanar plane z-fights the wall
+ *  behind it. */
+function PosterImage({ src, layout }: { src: string; layout: PosterLayout }) {
+  const texture = useTexture(asset(src));
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  return (
+    <mesh position={layout.position} rotation={[0, layout.rotationY, 0]} castShadow>
+      <planeGeometry args={[layout.width, layout.height]} />
+      <meshStandardMaterial map={texture} roughness={0.9} />
+    </mesh>
+  );
+}
+
+export function Poster() {
+  return (
+    <>
+      <PosterImage src="/posters/nit-hamirpur.webp" layout={POSTER} />
+      <PosterImage src="/posters/ronaldo.webp" layout={POSTER2} />
+      <PosterImage src="/posters/worldmap.webp" layout={POSTER3} />
+    </>
   );
 }
 

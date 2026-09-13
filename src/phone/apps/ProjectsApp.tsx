@@ -6,6 +6,7 @@ import { DESIGN, LAYER, PROJECTS, usePhone } from '../usePhone';
 import { roundedRectGeometry } from '../shapes';
 import { StatusBar } from '../screens';
 import { FONT, FONT_SEMIBOLD } from '../typography';
+import { useViewportClipping } from '../useViewportClipping';
 
 /** Dark on dark, like Skills and Experience -- there is no real "Projects"
  *  app to clone, so this borrows the system's own default palette and tints
@@ -24,6 +25,8 @@ const LIST_TOP = TITLE_Y - 40;
 /** Where the scrollable list is clipped at the bottom, clear of the home
  *  indicator. */
 const LIST_BOTTOM = -DESIGN.height / 2 + 50;
+/** Matches the screen's own rounded corners. */
+const SCREEN_RADIUS = 0.17 * DESIGN.width;
 
 const CARD_GAP = 16;
 const CARD_W = DESIGN.width - PAD * 2;
@@ -230,12 +233,13 @@ export function ProjectsApp() {
   const closeApp = usePhone((s) => s.closeApp);
 
   const screenGeometry = useMemo(
-    () => roundedRectGeometry(DESIGN.width, DESIGN.height, 0.17 * DESIGN.width),
+    () => roundedRectGeometry(DESIGN.width, DESIGN.height, SCREEN_RADIUS),
     [],
   );
   const catcher = useMemo(() => roundedRectGeometry(DESIGN.width, DESIGN.height, 0), []);
   const indicator = useMemo(() => roundedRectGeometry(130, 5, 2.5), []);
 
+  const screenRef = useRef<THREE.Group>(null);
   const listRef = useRef<THREE.Group>(null);
   const scroll = useRef(0);
   const drag = useRef({ active: false, startY: 0, startScroll: 0 });
@@ -244,6 +248,8 @@ export function ProjectsApp() {
   useFrame(() => {
     if (listRef.current) listRef.current.position.y += (scroll.current - listRef.current.position.y) * 0.3;
   });
+
+  useViewportClipping(screenRef, listRef, { top: LIST_TOP, bottom: LIST_BOTTOM });
 
   function localY(event: ThreeEvent<PointerEvent>) {
     return event.object.worldToLocal(event.point.clone()).y;
@@ -257,7 +263,7 @@ export function ProjectsApp() {
   });
 
   return (
-    <group>
+    <group ref={screenRef}>
       <mesh geometry={screenGeometry}>
         <meshBasicMaterial color={BACKDROP} toneMapped={false} />
       </mesh>

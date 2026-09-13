@@ -203,17 +203,17 @@ export const PROJECTS = [
   {
     name: 'Care.medanta.org',
     url: 'https://care.medanta.org',
-    image: null as string | null,
+    image: asset('/projects/medanta-care.webp') as string | null,
   },
   {
     name: 'Max Hospitals',
-    url: 'https://maxhospitals.com',
-    image: null as string | null,
+    url: 'https://www.maxhealthcare.in/',
+    image: asset('/projects/max-healthcare.webp') as string | null,
   },
   {
     name: 'EMB.global',
     url: 'https://emb.global',
-    image: null as string | null,
+    image: asset('/projects/emb-global.webp') as string | null,
   },
   {
     name: 'Freta',
@@ -228,7 +228,7 @@ export const PROJECTS = [
   {
     name: 'Portfolio Website',
     url: 'https://ashupanwar.github.io/portfolio/',
-    image: null as string | null,
+    image: asset('/projects/portfolio-website.webp') as string | null,
   },
 ] as const;
 
@@ -261,10 +261,11 @@ export const EXPERIENCE = [
     startDate: 'Aug 2023',
     endDate: 'Present',
     highlights: [
-      'Created a patient-facing web app for Medanta Hospitals.',
-      'Built CRM systems for Medanta, Max and Svass Hospitals.',
-      'Built an outbreak monitoring dashboard for GSK.',
+      "Built Medanta's patient-facing web app in Next.js and TypeScript, where patients book doctor appointments, lab tests and emergency services.",
+      'Built CRM systems for Medanta, Max and Svass Hospitals, used daily by staff – Redux Toolkit for shared state across dense multi-step workflows.',
+      'Built an outbreak monitoring dashboard for GSK, moving heavy data aggregation into web workers to keep charts responsive over large datasets.',
     ],
+    stack: ['React', 'Next.js', 'TypeScript', 'Redux Toolkit', 'Web Workers', 'REST APIs', 'CSS Modules'],
   },
   {
     company: 'Expand My Business',
@@ -273,10 +274,11 @@ export const EXPERIENCE = [
     startDate: 'Dec 2022',
     endDate: 'Jun 2023',
     highlights: [
-      'Developed multiple e-commerce projects.',
-      'Built a template-based website-building web app.',
-      "Built CRM solutions for clients' inventory management.",
+      'Shipped multiple e-commerce storefronts in React and Next.js with server-side rendering for SEO and fast first paint.',
+      'Built a template-driven website builder – a drag-and-drop editor with a live preview, backed by a JSON page schema.',
+      "Built CRM solutions for clients' inventory management, with Redux Toolkit and RTK Query for data fetching and caching.",
     ],
+    stack: ['React', 'Next.js', 'TypeScript', 'Redux Toolkit', 'RTK Query', 'Tailwind CSS', 'Node.js'],
   },
   {
     company: 'HCL Tech',
@@ -284,7 +286,11 @@ export const EXPERIENCE = [
     location: 'Remote',
     startDate: 'Jan 2021',
     endDate: 'Dec 2022',
-    highlights: ['Worked on MyHCL, the portal serving 200,000+ HCL employees.'],
+    highlights: [
+      'Worked on MyHCL, the employee portal serving 200,000+ HCL employees – React front-end with reusable, accessible component patterns.',
+      'Owned performance work across the portal: code-splitting, lazy-loaded routes and memoised data flows for a large, widely used app.',
+    ],
+    stack: ['React', 'JavaScript', 'TypeScript', 'Redux', 'HTML', 'CSS / SCSS', 'Jest'],
   },
   {
     company: 'UiPath',
@@ -292,7 +298,11 @@ export const EXPERIENCE = [
     location: 'Remote',
     startDate: 'Jun 2019',
     endDate: 'Jan 2021',
-    highlights: ['Worked with Fortune 500 companies building efficient automation apps.'],
+    highlights: [
+      'Worked with Fortune 500 clients building automation apps on the UiPath platform – front-ends in React and JavaScript over automation workflows.',
+      'Delivered client-facing dashboards and forms with an eye on reliability, since they ran inside business-critical processes.',
+    ],
+    stack: ['React', 'JavaScript', 'HTML', 'CSS', 'UiPath', 'REST APIs'],
   },
 ] as const;
 

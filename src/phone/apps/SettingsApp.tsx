@@ -27,8 +27,20 @@ const GROUP_WIDTH = DESIGN.width - PAD * 2;
 const ROW_HEIGHT = 46;
 const PROFILE_HEIGHT = 64;
 const GROUP_GAP = 20;
-const ICON_X = LEFT + 20;
-const TEXT_LEFT = LEFT + 48;
+
+/** Row-internal padding, matching the real app's own inset from a cell's
+ *  edge to its icon on the left and its chevron/value on the right --
+ *  the same margin on both sides, not just whatever the icon and text
+ *  happened to land on. */
+const ROW_INSET = 16;
+const ICON_SIZE = 28;
+const ICON_TEXT_GAP = 12;
+const ICON_X = LEFT + ROW_INSET + ICON_SIZE / 2;
+const TEXT_LEFT = LEFT + ROW_INSET + ICON_SIZE + ICON_TEXT_GAP;
+/** Right-hand inset for a row's trailing content (chevron, value, toggle) --
+ *  mirrors `ROW_INSET` so accessories don't crowd or poke past the card's
+ *  own edge the way a bare `RIGHT - 3` used to. */
+const TRAILING_RIGHT = RIGHT - ROW_INSET;
 
 /** Chevron pointing left, for the nav bar's back control. */
 function BackChevron({ color }: { color: string }) {
@@ -317,7 +329,10 @@ function SettingsRowView({
   toggleOn: boolean;
   onToggleChange: () => void;
 }) {
-  const divider = useMemo(() => roundedRectGeometry(GROUP_WIDTH - 68, 1, 0.5), []);
+  // Runs from the row's own text inset to its trailing inset, so it frames
+  // the same padded content area as everything else in the row.
+  const dividerWidth = TRAILING_RIGHT - TEXT_LEFT;
+  const divider = useMemo(() => roundedRectGeometry(dividerWidth, 1, 0.5), [dividerWidth]);
   const iconBadge = useMemo(() => roundedRectGeometry(28, 28, 8), []);
 
   return (
@@ -339,7 +354,9 @@ function SettingsRowView({
       </Text>
 
       {row.toggle ? (
-        <group position={[RIGHT - 22, 0, LAYER]}>
+        // Toggle track is 44 wide -- offset by its own half-width so its
+        // trailing edge, not its centre, lands on the row's right inset.
+        <group position={[TRAILING_RIGHT - 22, 0, LAYER]}>
           <Toggle on={toggleOn} onChange={onToggleChange} />
         </group>
       ) : (
@@ -347,7 +364,7 @@ function SettingsRowView({
           {row.value && (
             <Text
               font={FONT}
-              position={[RIGHT - 14, 0, LAYER]}
+              position={[TRAILING_RIGHT - 20, 0, LAYER]}
               fontSize={14}
               color={MUTED}
               anchorX="right"
@@ -356,14 +373,14 @@ function SettingsRowView({
               {row.value}
             </Text>
           )}
-          <group position={[RIGHT - 3, 0, LAYER]}>
+          <group position={[TRAILING_RIGHT - 4, 0, LAYER]}>
             <ChevronRight color="#c7c7cc" />
           </group>
         </>
       )}
 
       {showDivider && (
-        <mesh geometry={divider} position={[TEXT_LEFT + (GROUP_WIDTH - 68) / 2, -ROW_HEIGHT / 2, LAYER]}>
+        <mesh geometry={divider} position={[TEXT_LEFT + dividerWidth / 2, -ROW_HEIGHT / 2, LAYER]}>
           <meshBasicMaterial color={RULE} toneMapped={false} />
         </mesh>
       )}
@@ -427,7 +444,7 @@ const DEVICE: Row[] = [
  *  account behind it, only the shape of one. */
 function ProfileRow({ top }: { top: number }) {
   const card = useMemo(() => roundedRectGeometry(GROUP_WIDTH, PROFILE_HEIGHT, 14), []);
-  const avatarX = LEFT + 30;
+  const avatarX = LEFT + ROW_INSET + 24;
 
   return (
     <group>
@@ -473,7 +490,7 @@ function ProfileRow({ top }: { top: number }) {
         Apple ID, iCloud & more
       </Text>
 
-      <group position={[RIGHT - 3, top - PROFILE_HEIGHT / 2, LAYER]}>
+      <group position={[TRAILING_RIGHT - 4, top - PROFILE_HEIGHT / 2, LAYER]}>
         <ChevronRight color="#c7c7cc" />
       </group>
     </group>
